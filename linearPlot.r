@@ -54,24 +54,27 @@ mplot_lineal <- function(tag,
   coefficients(fit)
   if(nrow(summary(fit)$coef) == 1){pval <- NA}else if(is.na(summary(fit)$coef[2,4])){pval <- NA}else{ pval <- signif(summary(fit)$coef[2,4],3)}
   labels <- paste(
-    paste("Adj R2 = ", signif(summary(fit)$adj.r.squared, 4)),
-    paste("Pval =", pval), 
+    paste("R² (adj.) = ", signif(summary(fit)$adj.r.squared, 4)),
+    paste("p.value =", pval), 
     paste("RMSE =", signif(rmse(results$tag, results$score), 4)), 
-    paste("MAE =", signif(mae(results$tag, results$score), 4)), 
+    #paste("MAE =", signif(mae(results$tag, results$score), 4)), 
     sep="\n")
-
+  
   p <- ggplot(results, aes(x = tag, y = score)) +
     geom_point() +
     geom_smooth(method = "lm", se = FALSE) +
     #geom_abline(slope = as.numeric(fit$coefficients[2]), intercept = as.numeric(fit$coefficients[1]), alpha = 0.5, colour = "orange", size=0.6) +
     #geom_abline(slope = 1, intercept = 0, alpha = 0.5, colour = "orange", size=0.6) +
-    theme_minimal() + coord_equal(ratio = 0.7) + 
+    theme_minimal() + coord_equal(ratio = 1,xlim = c(0,100),ylim = c(0,100)) + 
     labs(title = title,
-         x = "Real value", y = "Predicted value") +
-    annotate("text", x = Inf, y = -Inf, hjust = 1, vjust = 0, label = labels, size = 3.2) +
+         x = "Chronological age (Years)", y = "Transcriptomic age") +
+    # annotate("text", x = Inf, y = -Inf, hjust = 1, vjust = 0, label = labels, size = 4) +
+    geom_label(aes(x = 100, y = 0, hjust = 1, vjust = 0), label = labels, size = 8, label.padding = unit(0.50, "lines"), label.size = 0) +
     scale_x_continuous(labels = comma) +
     scale_y_continuous(labels = comma) +
-    theme(legend.justification = c(0, 1), legend.position = c(0, 1)) +
+    theme(legend.justification = c(0, 1), legend.position = c(0, 1),
+          axis.text = element_text(size = 22), axis.title=element_text(size=20),
+          plot.title = element_text(size=24,face="bold",hjust = 0.5)) +
     guides(colour = guide_colorbar(barwidth = 0.9, barheight = 4.5))
   
   if(deviation){
@@ -86,10 +89,9 @@ mplot_lineal <- function(tag,
   if(!is.na(model_name)) {
     p <- p + labs(caption = model_name)
   }
-  
   if (save == TRUE) {
     p <- p + ggsave(file_name, width = 6, height = 6)
   }
   
   return(p)
-  }
+}
