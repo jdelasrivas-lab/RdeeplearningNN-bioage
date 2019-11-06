@@ -1,4 +1,3 @@
-
 mplot_roc <- function(tag, score, model_name = NA, subtitle = NA, interval = 0.2, plotly = FALSE,
                       save = FALSE, file_name = "viz_roc.png") {
   require(pROC)

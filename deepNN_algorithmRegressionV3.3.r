@@ -5,16 +5,16 @@
 # Learning Rate: automatically adjusted with Adagrad algorithm (algorithm for gradient-based optimization:
 # It adapts the learning rate to the parameters, performing larger updates for infrequent and smaller updates 
 # for frequent parameters)
-# Optimized version 2017-Jun-27 by Óscar González Velasco - CiC Lab 19
+# Optimized version 2018-Jun-27 by Óscar González Velasco - CiC Lab 19
 # Deep Neural Network With multiple hidden Layers
 ########################################################################
-### Build the Neural Network structure, values:
 
+### Build the Neural Network structure and initial values:
 deepNeuralNetwork.build <- function(x,y,
                                     HidenLayerNeurons = c(4,4), inputNeurons = 0,
                                     outputNeurons = 0,Ai = 0.25,traindata=data,
                                     drawDNN = FALSE, random.seed = 1, standarization = "r"){
-  source(file = "/home/oscar/Escritorio/deepNN/drawDeepNN.r")
+  source(file = "./drawDeepNN.r")
   message(" Loading DNN model parameters...")
   Sys.sleep(1)
   # to make the case reproducible.
@@ -23,8 +23,7 @@ deepNeuralNetwork.build <- function(x,y,
     stop("Hiden Layer Neurons specification is not valid.")
     return(NULL)
   }
-  
-    # total number of training set
+  # total number of training set
   N <- nrow(traindata)
   
   # D = Number of Neurons in input layer
@@ -110,8 +109,8 @@ deepNeuralNetwork.build <- function(x,y,
 
 #########################################
 ## Partial Prediction for in-training use
-## - A partial prediction over the test data is calculate
-##   to measure the overfitting.
+## - A partial prediction over the test data is calculated
+##   to measure overfitting.
 deepNeuralNetwork.run <- function(model.trained, data = X.test) {
   # Activation Function: PReLu (Parametric Rectifier Linear unit)
   #       - PReLu avoids 0 gradient minimum by applying Ai*y when y<0
@@ -132,7 +131,6 @@ deepNeuralNetwork.run <- function(model.trained, data = X.test) {
       Hx[[i]] <- pmax(Hx[[i]], Wn[[i]]$A * Hx[[i]])
       # Hx[[i]] <- pmax(Hx[[i]], 0.1) # ReLU Function implementation with minimun constant 0.1
     }}
-  
   ## The Output of the DNN 
   return(y_output)
 }
@@ -210,7 +208,7 @@ deepNeuralNetwork.training <- function(x,y, model = NULL,
                                        # savePlotIteration = save the plot of each iteration as a .png image?
                                        savePlotIteration = FALSE)
 {
-  source("/home/oscar/Escritorio/DeepNeuralNetworks4R/linearPlot.r")
+  source("./linearPlot.r")
   # traindata <- data
   # total number of training set
   if(!class(model) == "DeepNNModel"){error("The Deep NN Model is not of class: \"DeepNNModel\"")}
@@ -250,9 +248,6 @@ deepNeuralNetwork.training <- function(x,y, model = NULL,
     data = testdata[x,]
     X.prima <- deepNeuralNetwork.standarizegenescore(x = data,gene.list = standarization)
     X.prima <- t(X.prima)
-    # X.prima <- as.matrix(ldply(lapply(X = standarization,function(x)deepNeuralNetwork.standarize(x = t(X.prima.t),method = "genecomb",gene = as.character(x))), data.frame))
-    # X.prima <- as.matrix(rbind(deepNeuralNetwork.standarize(t(X.prima.t),method = "r"),X.prima))
-    # X.prima <- t(X.prima)
   }else{X.prima <- t(deepNeuralNetwork.standarize(X.prima.raw))}
   
   # create index for both row and col
@@ -331,7 +326,8 @@ deepNeuralNetwork.training <- function(x,y, model = NULL,
       model@error <- loss
       model@bestDnn <- bestModel
       model@bestError <- bestLoss
-      model@bestDnn2 <- bestModel2
+      if(is.null(bestModel2)){model@bestDnn2 <- as.list(bestModel2)}
+      else{model@bestDnn2 <- bestModel2}
       model@bestError2 <- bestLoss2
       rm(Wn,bestModel,dhidden,Hx_function,X,Y)
       gc()
@@ -353,23 +349,14 @@ deepNeuralNetwork.training <- function(x,y, model = NULL,
         SSE2 <- sum(e2^2)
         Etest <- SSE2/SST2
         if(partialPredict < predictionLoss){ predictionLoss <- partialPredict }
-        # if( (((loss / partialPredict)*100) < 80) && (i > 4000)){ 
-        #   cat("\n Maximum Loss vs testLoss criteria reached \n")
-        #   cat(((loss / partialPredict)*100),"\n")
-        #   break()}
-      }
+        }
       
       cat("\r","Iteration Number:",i," Actual Loss:", loss, " Squared:",SSE,"\n") 
       cat("TLoss Ratio: ",(partialPredict - loss)," Prediction Loss:", predictionLoss, " Partial predict:",partialPredict ,"\n")
-      #cat("E1:",standardizedLoss," E2:",standardizedLoss2)
       cat("Error 1:",Epredicted," Error 2:",Etest,"\n")
       cat("\n Log2(E1/E2):",log2(Epredicted/Etest),"\n")
       cat("##################################################### \n")
-      print(mplot_lineal(tag = Y,score = y_DNNoutput))
-      #qqplot(y_DNNoutput,Y, xlab = "Predicted", ylab = "Observed", main = "Observed Values vs Predicted Values")
-      #mtext(paste("Iteration:",i,"Loss:",round(loss, digits = 4),sep = " "))
-      #abline(0,1) 
-    }
+      }
     if( i %% display == 0){
       #######################################
       ## Check for Overfitting and early stop
@@ -377,16 +364,11 @@ deepNeuralNetwork.training <- function(x,y, model = NULL,
         partialResult <- deepNeuralNetwork.run(model.trained = Wn,
                                                data = X.prima)
         partialPredict <- (sqrt(mean((partialResult - Yprima)^2)))/ batchsize.test
-        # delta_y <- 2*(probs+partialPredict)
         e2 <- partialResult - Yprima
         SSE2 <- sum(e2^2)
         Etest <- SSE2/SST2
         if(partialPredict < predictionLoss){ predictionLoss <- partialPredict }
-        # if( (((loss / partialPredict)*100) < 80) && (i > 4000)){ 
-        #   cat("\n Maximum Loss vs testLoss criteria reached \n")
-        #   cat(((loss / partialPredict)*100),"\n")
-        #   break()}
-      }
+        }
       if((Epredicted < maxError) & (Etest < bestEtest)){
         bestEtest <- Etest
         bestLoss2 <- Etest
@@ -394,7 +376,6 @@ deepNeuralNetwork.training <- function(x,y, model = NULL,
       }
       cat("\r","Iteration Number:",i," Actual Loss:", loss, " Squared:",SSE,"\n") 
       cat("TLoss Ratio: ",(partialPredict - loss)," Prediction Loss:", predictionLoss, " Partial predict:",partialPredict ,"\n")
-      #cat("E1:",standardizedLoss," E2:",standardizedLoss2)
       cat("Error 1:",Epredicted," Error 2:",Etest,"\n")
       cat("\n Log2(E1/E2):",log2(Epredicted/Etest),"\n")
       cat("##################################################### \n")
@@ -402,7 +383,7 @@ deepNeuralNetwork.training <- function(x,y, model = NULL,
       subtitle <- "Regresion Model parcial prediction."
       if(savePlotIteration){
         # Should the plot image for each epoque-iteration be saved? TRUE -> png image with the iteration number as name
-        print(mplot_lineal(tag = Y,score = y_DNNoutput,title = title,subtitle = subtitle,save = T,file_name = paste(as.character(i),".png",sep = ""),subdir = "/home/oscar/Escritorio/DeepNeuralNetworks4R/images/"))
+        print(mplot_lineal(tag = Y,score = y_DNNoutput,title = title,subtitle = subtitle,save = T,file_name = paste("regression.model.iteration.",as.character(i),".png",sep = ""),subdir = "/home/oscar/Escritorio/DeepNeuralNetworks4R/images/"))
         }
       else{
         print(mplot_lineal(tag = Y,score = y_DNNoutput,title = title,subtitle = subtitle))
@@ -413,15 +394,16 @@ deepNeuralNetwork.training <- function(x,y, model = NULL,
     ############################
     # Backpropagation Algorithm: updating of Weights and Bias
     # We start by updating and calculating the values for the output layer -> j layer -> inputLayer
+    
+    # We apply the derivative function of the Root Mean Square Error formula:
     delta_y <- 2*(probs)
-    # delta_y <- delta_y #/ batchsize
-    ## Output Layer (Layer N-1)
+    # Output Layer (Layer N-1)
     derivativeWeights <- crossprod(Hx_function[[N-1]],delta_y)
     derivativeBias <- colSums(delta_y)
     # Wn[[N]] Here corresponds with layer l-1 weights
     dhidden <- tcrossprod(delta_y,Wn[[N]]$W)
     
-    # Applying the derivative ReLu 
+    # Applying the derivative function of the ReLu formula
     dPrelu <- pmin(dhidden,0)
     dhidden[Hx_function[[N-1]] <= 0] <- Wn[[N-1]]$A * dhidden[Hx_function[[N-1]] <= 0]
     
@@ -467,8 +449,7 @@ deepNeuralNetwork.training <- function(x,y, model = NULL,
     Wn[[1]]$A <- 0.9 * Wn[[1]]$A + adagradA * derivativePrelu # 0.9:momentum of PReLu Ai parameter
   }
   #############################################
-  # Final results, statistics and release memory #
- 
+  # Final results, statistics and memory release #
   cat("Total Data Loss MSE:", loss, "\n")
   residuals <- Y - y_DNNoutput
   res.std <- (residuals - mean(residuals))/sd(residuals)
@@ -483,17 +464,15 @@ deepNeuralNetwork.training <- function(x,y, model = NULL,
   model@error <- loss
   model@bestDnn <- bestModel
   model@bestError <- bestLoss
-  model@bestDnn2 <- bestModel2
+  if(is.null(bestModel2)){model@bestDnn2 <- as.list(bestModel2)}
+  else{model@bestDnn2 <- bestModel2}
   model@bestError2 <- bestLoss2
-  # results <- list(dnn = Wn, error = loss, bestDnn = bestModel, bestError = bestLoss,bestDnn2 = bestModel2, bestError2 = bestLoss2)
   rm(Wn,bestModel,dhidden,Hx_function,X,Y)
   gc()
   return(model)
-  # return(results)
 }
 
-
-# ################ ON CONSTRUCTION
+# ## WRAPPER FOR GENE-TARGET STANDARIZATION
 deepNeuralNetwork.standarizegenescore <- function(x = NULL, method = "gene",gene.list = NA){
   
   if(!method %in% c("s","r","gene","genecomb")){
@@ -524,18 +503,13 @@ deepNeuralNetwork.standarizegenescore <- function(x = NULL, method = "gene",gene
   message(" Completed.")
   return(new.data)
 }
-# ################ ON CONSTRUCTION
+#
 
-
-### Standarizing gene signal by targeted gene ENSG00000075856 stable in Hippocampus
-### Standarizing gene signal by targeted gene ENSG00000124214 stable in Cortex
-deepNeuralNetwork.standarize <- function(x = NULL, method = "gene",gene = NA){
+### Standarizing gene signal
+deepNeuralNetwork.standarize <- function(x = NULL, method = "r",gene = NA){
   if(is.null(x))stop("Standarizing data: ERROR, data is NULL.")
   if(!is.numeric(x))stop("Standarizing data: ERROR, trying to standarize non-numeric data.")
   if(is.null(dim(x)))x<-as.data.frame(x)
-  # if( (summary(apply(x,MARGIN = 2,FUN = sd))[3] == 1) && (summary(apply(x,MARGIN = 2,FUN = sd))[4]== 1) ){
-  #   warning("The Data is already standarized (Standar Deviation = 1) \n*None standarization applied.")
-  #   return(x)}
   if(!method %in% c("s","r","gene","genecomb")){
     message("Invalid Method \"",method,"\": \n - \"s\" for standar Z-score using the mean and SD \n - \"r\" for robust Z-score using the median and MAD \n - \"gene\" for specific-gene Z-score using the gene as centroid - |n \"genecomb\" for specific-gene Z-score using the gene as centroid and  sample-gene combined standar deviation")
     warning("choose method = \"-\"",immediate. = T)
@@ -553,44 +527,9 @@ deepNeuralNetwork.standarize <- function(x = NULL, method = "gene",gene = NA){
     message("Standarizing data [by column] using *median absolute deviation(MAD) Z-score...",appendLF = F)
     rowmed <- apply(x, 2, median)
     rowmad <- apply(x, 2, mad)  # median absolute deviation
-    # rv <- sweep(x, 2, rowmed,"-")  #subtracting median expression
-    # rv <- sweep(rv, 2, rowmad, "/")  # dividing by median absolute deviation
     rv <- (x - rowmed) / rowmad
     message(" Completed.")
     return(rv)
-  }
-  
-  if(method == "gene"){
-    if(is.na(gene))stop("Gene-target for standarization not specified.")
-    message("Standarizing data [by column] using *specific-gene Z-score...",appendLF = F)
-    MX.standarized <- apply(X = x,MARGIN = 2,FUN = function(y){
-      (y - y[match(gene,names(y))])/sd(y)})
-    message(" Completed.\n")
-    return(MX.standarized)
-    # rv <- apply(x,1,function(x){x-x[gene]})
-    #rv <- sweep(x, 1, gene.signal,"-")  #subtracting median expression
-    # rv <- sweep(rv, 1, gene.sd, "/")  # dividing by median absolute deviation
-  }
-  if(method == "genecomb"){
-    if(is.na(gene))stop("Gene-target for standarization not specified.")
-    message("Standarizing data using *specific-gene Z-score with MAD...",appendLF = F)
-    gene.mean <- mean(x[match(gene,rownames(x)),])
-    gene.n <- length(x[match(gene,rownames(x)),])
-    gene.sd <- sd(x[match(gene,rownames(x)),])
-    MX.standarized <- apply(X = x,MARGIN = 2,FUN = function(y){
-      # sample.mean <- mean(y)
-      # sample.n <- length(y)
-      # sample.sd <- sd(y)
-      sample.MAD <- mad(y)
-      target.gene.exprs <- y[match(gene,names(y))]
-      y <- y[-match(gene,names(y))]
-      # combined.mean <- ((gene.n*gene.mean)+(sample.n*sample.mean))/(gene.n+sample.n)
-      # combined.sd <- sqrt( ( ((gene.n-1)*(gene.sd^2))+((sample.n-1)*(sample.sd^2))+gene.n*((gene.mean-combined.mean)^2)+sample.n*((sample.mean-combined.mean)^2) )/ (gene.n+sample.n-1))
-      return((y - target.gene.exprs)/sample.MAD)})
-    # print(rownames(MX.standarized)[match(gene,colnames(MX.standarized))])
-    # MX.standarized <- MX.standarized[,-match(gene,colnames(MX.standarized))]
-    message(" Completed.\n")
-    return(MX.standarized)
   }
 }
 

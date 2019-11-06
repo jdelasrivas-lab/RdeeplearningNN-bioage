@@ -45,7 +45,6 @@ mplot_lineal <- function(tag,
   
   results <- data.frame(tag = tag, score = score, dist = 0)
   for (i in 1:nrow(results)) { 
-    #results$dist[i] <- dist2d(c(results$tag[i],results$score[i]), c(0,0), c(1,1))
     results$dist[i] <- abs(results$tag[i] - results$score[i])
   }
   
@@ -57,18 +56,14 @@ mplot_lineal <- function(tag,
     paste("R² (adj.) = ", signif(summary(fit)$adj.r.squared, 4)),
     paste("p.value =", pval), 
     paste("RMSE =", signif(rmse(results$tag, results$score), 4)), 
-    #paste("MAE =", signif(mae(results$tag, results$score), 4)), 
     sep="\n")
   
   p <- ggplot(results, aes(x = tag, y = score)) +
     geom_point() +
     geom_smooth(method = "lm", se = FALSE) +
-    #geom_abline(slope = as.numeric(fit$coefficients[2]), intercept = as.numeric(fit$coefficients[1]), alpha = 0.5, colour = "orange", size=0.6) +
-    #geom_abline(slope = 1, intercept = 0, alpha = 0.5, colour = "orange", size=0.6) +
     theme_minimal() + coord_equal(ratio = 1,xlim = c(0,100),ylim = c(0,100)) + 
     labs(title = title,
          x = "Chronological age (Years)", y = "Transcriptomic age") +
-    # annotate("text", x = Inf, y = -Inf, hjust = 1, vjust = 0, label = labels, size = 4) +
     geom_label(aes(x = 100, y = 0, hjust = 1, vjust = 0), label = labels, size = 8, label.padding = unit(0.50, "lines"), label.size = 0) +
     scale_x_continuous(labels = comma) +
     scale_y_continuous(labels = comma) +
