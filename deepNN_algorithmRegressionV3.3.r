@@ -147,6 +147,7 @@ deepNeuralNetwork.predict <- function(model.trained, data = X.test, standarizati
     
   }else{
     new.data <- deepNeuralNetwork.standarize(data.matrix(data))
+    new.data <- t(new.data)
   }
   Sys.sleep(time = 1)
   message(" Done.")

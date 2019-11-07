@@ -20,6 +20,10 @@ mplot_lineal <- function(tag,
                          subdir = NA,
                          deviation = FALSE,
                          transparent = FALSE,
+                         x.lim = c(0,100),
+                         y.lim = c(0,100),
+                         x.lab = "Chronological age (Years)",
+                         y.lab = "Transcriptomic age",
                          file_name = "viz_lineal.png") {
   
   require(ggplot2)
@@ -61,10 +65,10 @@ mplot_lineal <- function(tag,
   p <- ggplot(results, aes(x = tag, y = score)) +
     geom_point() +
     geom_smooth(method = "lm", se = FALSE) +
-    theme_minimal() + coord_equal(ratio = 1,xlim = c(0,100),ylim = c(0,100)) + 
+    theme_minimal() + coord_equal(ratio = 1,xlim = x.lim,ylim = y.lim) + 
     labs(title = title,
-         x = "Chronological age (Years)", y = "Transcriptomic age") +
-    geom_label(aes(x = 100, y = 0, hjust = 1, vjust = 0), label = labels, size = 8, label.padding = unit(0.50, "lines"), label.size = 0) +
+         x = x.lab, y = y.lab) +
+    geom_label(aes(x = x.lim[2], y = y.lim[1], hjust = 1, vjust = 0), label = labels, size = 8, label.padding = unit(0.50, "lines"), label.size = 0) +
     scale_x_continuous(labels = comma) +
     scale_y_continuous(labels = comma) +
     theme(legend.justification = c(0, 1), legend.position = c(0, 1),

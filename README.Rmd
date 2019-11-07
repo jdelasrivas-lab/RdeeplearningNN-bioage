@@ -1,0 +1,90 @@
+---
+title: "DeepNeuralNetworks4R"
+author: "Óscar González-Velasco"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+================
+Implementation of _Deep Neural Networks_ in R programing language.
+----------------
+
+Regression algorithm for Omic data prediction in brain transcriptomics (although as a regression model, it can be applied to **any** problem with a dependent continuous variable).
+
+We will use *_iris_* dataset as a tiny example of a *_regression_* model using *deep neural networks*:
+
+```{r }
+library(datasets)
+data(iris)
+summary(iris)
+```
+We will try to predict petal length from the other parameters.
+```{r }
+# We load the DNN algorithm:
+source("./deepNN_algorithmRegressionV3.3.r")
+
+# We will pick 110 samples for the training set and the remaining 40 for the test set.
+training.MX <- sample(1:nrow(iris),size = 110)
+test.MX <- setdiff(1:150,training.MX)
+
+training.MX <- iris[training.MX,]
+training.MX$Species <- as.numeric(training.MX$Species)
+training.MX <- t(training.MX)
+
+test.MX <- iris[test.MX,]
+test.MX$Species <- as.numeric(test.MX$Species)
+test.MX <- t(test.MX)
+head(training.MX[,1:5])
+```
+Here we can find an except for the training dataset, *notice* that *response variables* correspond to *_rows_*, meanwhile *samples* correspond to *_columns_* .
+
+## Training the regression model
+
+First, we proceed to create the deep neural network model:
+
+```{r, message = FALSE}
+dnn.model <- deepNeuralNetwork.build(x=c(1,2,4,5),y=3, outputNeurons = 1,
+                                 HidenLayerNeurons = c(30,10,3),traindata=data,
+                                 random.seed = 1, drawDNN = 0)
+```
+
+*_x_* will specify the indice positions of our explanatory variables on the matrix _data_
+
+*_HidenLayerNeurons_* will specify the number of neurons that each layer will have. The number of neurons on the very first layer will be the number of variables that we will use to create the regression model.
+
+*_deepNeuralNetwork.build_* will create an object of class _DeepNNModel_ that will store all the information about the dnn model.
+
+And now we train the deep neural network using the following code:
+
+```{r, message=FALSE}
+# 3. train model
+dnn.model.trained <- deepNeuralNetwork.training(x=c(1,2,4,5),y=3, model = dnn.model, #ddn.model.in.use, 
+                                              traindata=training.MX, testdata=test.MX, 
+                                              iterations  = 15000, lr = 0.001, 
+                                              reg = 0.001, display=500,maxError = 0.1)
+```
+
+## Testing the results
+
+Once we have the model, we will make use of *_deepNeuralNetwork.predict_* function to predict a feature based on the trained regression model:
+
+```{r message = FALSE,fig.dim = c(10, 10)}
+petal.length.prediction <- deepNeuralNetwork.predict(model.trained = dnn.model.trained@bestDnn,
+                                                     data = test.MX[-3,])
+source("linearPlot.r")
+mplot_lineal(tag = test.MX[3,],score = petal.length.prediction,title = "Petal length prediction using DNN regression",
+             x.lim = c(1,7),y.lim = c(1,7),x.lab="petal length (observed)",y.lab = "petal length (predicted)")
+```
+
+## Using GPU for large datasets
+
+The DeepNN algorithm has been optimized to be executed on a GPU card using R's matrix/vector arithmetic expressions.
+
+The following example shows how to run the DNN on a GPU using CUDA with R's nvblas config file:
+
+```{bash, eval=FALSE}
+sudo env LD_PRELOAD=/PATH/TO/CUDA/NVBLAS/libnvblas.so NVBLAS_CONFIG_FILE=/PATH/TO/NVBLAS.CONFIG.FILE/nvblas.conf R CMD BATCH ./regression.deepNN.GPU.r /dev/tty
+```
