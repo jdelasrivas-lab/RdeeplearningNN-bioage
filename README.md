@@ -69,11 +69,21 @@ dnn.model <- deepNeuralNetwork.build(x=c(1,2,4,5),y=3, outputNeurons = 1,
                                  random.seed = 1, drawDNN = 0)
 ```
 
-**x** will specify the indice positions of our explanatory variables on the matrix *data*
+**x** will specify the index positions of our explanatory variables on the matrix *data*
 
 **HidenLayerNeurons** will specify the number of neurons that each layer will have. The number of neurons on the very first layer will be the number of variables that we will use to create the regression model.
 
-**deepNeuralNetwork.build** will create an object of class *DeepNNModel* that will store all the information about the dnn model.
+**deepNeuralNetwork.build** will create an object of class *DeepNNModel* that will store all the information about the dnn model:
+
+`dnn.model@dnn.structure` returns the number of neurons in each layer
+
+    ## 4 30 10  3  3  3  1
+
+``` r
+class(dnn.model)
+```
+
+    ## "DeepNNModel"
 
 And now we train the deep neural network using the following code:
 
