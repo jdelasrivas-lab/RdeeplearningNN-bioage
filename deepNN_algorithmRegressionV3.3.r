@@ -221,8 +221,11 @@ deepNeuralNetwork.training <- function(x,y, model = NULL,
     data = traindata[x,]
     X <- deepNeuralNetwork.standarizegenescore(x = data,gene.list = standarization)
     X <- t(X)
-  }else{X <- t(deepNeuralNetwork.standarize(t(X.raw)))}
-  
+  }else{
+    X <- deepNeuralNetwork.standarize(traindata[x,])
+    X <- t(X)
+  }
+  print(dim(X))
   # correct categories represented by integer
   # This Y data will be the data to be predicted: Y = F(X) + a
   Y <- traindata[y,]
@@ -248,7 +251,10 @@ deepNeuralNetwork.training <- function(x,y, model = NULL,
     data = testdata[x,]
     X.prima <- deepNeuralNetwork.standarizegenescore(x = data,gene.list = standarization)
     X.prima <- t(X.prima)
-  }else{X.prima <- t(deepNeuralNetwork.standarize(X.prima.raw))}
+  }else{
+    X.prima <- deepNeuralNetwork.standarize(testdata[x,])
+    X.prima <- t(X.prima)
+    }
   
   # create index for both row and col
   Y.len   <- length(Y)
@@ -342,6 +348,7 @@ deepNeuralNetwork.training <- function(x,y, model = NULL,
     ## Print partial results
     if(i == 1){
       if(!is.null(testdata)){
+        print(dim(X.prima))
         partialResult <- deepNeuralNetwork.run(model.trained = Wn,
                                                data = X.prima)
         partialPredict <- (sqrt(mean((partialResult - Yprima)^2)))/ batchsize.test
