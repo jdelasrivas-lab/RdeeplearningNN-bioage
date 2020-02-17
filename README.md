@@ -153,7 +153,7 @@ mplot_lineal(observed = test.data[nrow(test.data),],
              x.lab="chronological age (observed)",y.lab = "predicted bio-age (predicted)")
 ```
 
-![](README_files/figure-markdown_github/unnamed-chunk-5-1.png)
+![](README_files/figure-markdown_github/example.with.40k.iterations.test.data.tiff)
 
 Using GPU for large datasets
 ----------------------------
