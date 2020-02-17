@@ -1,6 +1,6 @@
 DeepNeuralNetworks4R
 ================
-Regression algorithm package for Omic data prediction in brain transcriptomics (although as a regression model, it can be applied to **any** problem with a dependent continuous variable).
+Regression algorithm package based on _**Deep Neural Networks**_ for Omic data prediction in brain transcriptomics (although as a regression model, it can be applied to **any** problem with a dependent continuous variable).
 
 Developer: Óscar González-Velasco [oscargv@usal.es] - _Bioinformatics and functional genomics group, Cancer Research Center Salamanca (CIC-IBMCC)_
 
@@ -30,7 +30,7 @@ We will use **a set of transcriptomic data from human brain samples** included o
 library(DeepNeuralNetworks4R)
 ```
 
-We will try to predict the age of the individuals based on the gene expression of 1078 genes selected because of its implications on brain aging on cortex region (Oscar González-Velasco, et al., BBA - Gene Regulatory Mechanisms, <https://doi.org/10.1016/j.bbagrm.2020.194491>).
+We will try to predict the age of the individuals based on the gene expression of 1078 genes selected because of its implications on brain aging on cortex region (_Oscar González-Velasco, et al., BBA - Gene Regulatory Mechanisms, <https://doi.org/10.1016/j.bbagrm.2020.194491>_).
 
 ``` r
 # We inspectionate the data included within the package:
@@ -117,6 +117,8 @@ And now we train the deep neural network using the following code:
 
 ``` r
 # 3. train model
+# CHECK NUMBER OF ITERATIONS !
+# this may take a long time depending of the volume of the data and if GPU is being used or not.
 timeNN <- system.time(
   model.trained <- deepNeuralNetwork.training(
                         x=1:(nrow(training.data)-1),
@@ -124,7 +126,7 @@ timeNN <- system.time(
                         model = model, #ddn.model.in.use,
                         traindata=training.data,
                         testdata=test.data,
-                        iterations  = 1000,
+                        iterations  = 40000,
                         lr = 0.001,
                         reg = 0.001,
                         display=1000,
