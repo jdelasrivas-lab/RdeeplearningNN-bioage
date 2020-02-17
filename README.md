@@ -1,12 +1,14 @@
 DeepNeuralNetworks4R
 ================
-Óscar González-Velasco
+Developer: Óscar González-Velasco [oscargv@usal.es] - Cancer Research Center Salamanca (CIC-IBMCC)
+
+Citing this package: _Oscar González-Velasco, et al., BBA - Gene Regulatory Mechanisms, <https://doi.org/10.1016/j.bbagrm.2020.194491>_
 
 ================ Implementation of *Deep Neural Networks* in R programing language. ----------------
 
-Regression algorithm for Omic data prediction in brain transcriptomics (although as a regression model, it can be applied to **any** problem with a dependent continuous variable).
+Regression algorithm package for Omic data prediction in brain transcriptomics (although as a regression model, it can be applied to **any** problem with a dependent continuous variable).
 
-We will use **a set of transcriptomic data from human brain samples** included on the package as an example of a **regression** model using *deep neural networks* to predict the biological age:
+We will use **a set of transcriptomic data from human brain samples** included on the package as an example of a **regression** model using *deep neural networks* to predict the biological age. It consist of 2 dataframes: training.data and test.data, composed of gene signal (numeric) and age of every individual:
 
 ``` r
 # We load the Deep Neural Network package:
@@ -17,6 +19,8 @@ We will try to predict the age of the individuals based on the gene expression o
 
 ``` r
 # We inspectionate the data included within the package:
+# rows corresponding to gene ENSEMBL id's and age being the last row
+# columns corresponding to sample id's
 training.data[1:5,1:5]
 ```
 
