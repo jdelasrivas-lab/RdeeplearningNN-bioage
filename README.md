@@ -1,6 +1,6 @@
 DeepNeuralNetworks4R
 ================
-Developer: Óscar González-Velasco [oscargv@usal.es] - Cancer Research Center Salamanca (CIC-IBMCC)
+Developer: Óscar González-Velasco [oscargv@usal.es] - _Bioinformatics and functional genomics group, Cancer Research Center Salamanca (CIC-IBMCC)_
 
 Citing this package: _Oscar González-Velasco, et al., BBA - Gene Regulatory Mechanisms, <https://doi.org/10.1016/j.bbagrm.2020.194491>_
 
