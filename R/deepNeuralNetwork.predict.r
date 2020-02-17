@@ -19,6 +19,10 @@ deepNeuralNetwork.predict <- function(
   # - Same standarization as in training must be done
   # Activation Function: PReLu (Parametric Rectifier Linear unit)
   #       - PReLu avoids 0 gradient minimum by applying Ai*y when y<0
+  if( !class(model.trained) == "DeepNNModel" ){
+    error("Model is not of type 'DeepNNModel'")
+  }
+
   message(" Standarizing Data...", appendLF = F)
   if (is.list(standarization)) {
     new.data <- deepNeuralNetwork.standarizegenescore(x = data, gene.list = standarization)
@@ -30,7 +34,7 @@ deepNeuralNetwork.predict <- function(
   Sys.sleep(time = 1)
   message(" Done.")
   message(" Loading model...", appendLF = F)
-  Wn <- model.trained
+  Wn <- model.trained@bestDnn
   Sys.sleep(time = 0.5)
   message(" Done.")
   N <- length(Wn)

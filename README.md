@@ -1,60 +1,74 @@
 DeepNeuralNetworks4R
 ================
+Óscar González-Velasco
 
-Implementation of *Deep Neural Networks* in R programing language.
-----------------
+================ Implementation of *Deep Neural Networks* in R programing language. ----------------
 
 Regression algorithm for Omic data prediction in brain transcriptomics (although as a regression model, it can be applied to **any** problem with a dependent continuous variable).
 
-We will use **iris** dataset as a tiny example of a **regression** model using *deep neural networks*:
+We will use **a set of transcriptomic data from human brain samples** included on the package as an example of a **regression** model using *deep neural networks* to predict the biological age:
 
 ``` r
-library(datasets)
-data(iris)
-summary(iris)
+# We load the Deep Neural Network package:
+library(DeepNeuralNetworks4R)
 ```
 
-    ##   Sepal.Length    Sepal.Width     Petal.Length    Petal.Width   
-    ##  Min.   :4.300   Min.   :2.000   Min.   :1.000   Min.   :0.100  
-    ##  1st Qu.:5.100   1st Qu.:2.800   1st Qu.:1.600   1st Qu.:0.300  
-    ##  Median :5.800   Median :3.000   Median :4.350   Median :1.300  
-    ##  Mean   :5.843   Mean   :3.057   Mean   :3.758   Mean   :1.199  
-    ##  3rd Qu.:6.400   3rd Qu.:3.300   3rd Qu.:5.100   3rd Qu.:1.800  
-    ##  Max.   :7.900   Max.   :4.400   Max.   :6.900   Max.   :2.500  
-    ##        Species  
-    ##  setosa    :50  
-    ##  versicolor:50  
-    ##  virginica :50  
-    ##                 
-    ##                 
+We will try to predict the age of the individuals based on the gene expression of 1078 genes selected because of its implications on brain aging on cortex region (Oscar González-Velasco, et al., BBA - Gene Regulatory Mechanisms, <https://doi.org/10.1016/j.bbagrm.2020.194491>).
+
+``` r
+# We inspectionate the data included within the package:
+training.data[1:5,1:5]
+```
+
+    ##                 GSM704248_HSB111-VFC-L.CEL.gz
+    ## ENSG00000137198                      7.524863
+    ## ENSG00000096060                      7.144682
+    ## ENSG00000157617                      7.420950
+    ## ENSG00000133048                      8.678242
+    ## ENSG00000141469                      8.796922
+    ##                 GSM705237_HSB187-ITC-L.CEL.gz
+    ## ENSG00000137198                      8.475986
+    ## ENSG00000096060                      8.037325
+    ## ENSG00000157617                      7.802414
+    ## ENSG00000133048                      8.554860
+    ## ENSG00000141469                      9.208810
+    ##                 GSM704454_HSB123-OFC-R.CEL.gz
+    ## ENSG00000137198                      7.172010
+    ## ENSG00000096060                      6.427262
+    ## ENSG00000157617                      7.492608
+    ## ENSG00000133048                      7.717559
+    ## ENSG00000141469                      7.975551
+    ##                 GSM704797_HSB143-OFC-R.CEL.gz
+    ## ENSG00000137198                      6.760808
+    ## ENSG00000096060                      7.128328
+    ## ENSG00000157617                      7.358303
+    ## ENSG00000133048                      7.374534
+    ## ENSG00000141469                      6.679770
+    ##                 GSM704826_HSB144-OFC-L.CEL.gz
+    ## ENSG00000137198                      7.712089
+    ## ENSG00000096060                      7.093889
+    ## ENSG00000157617                      7.641471
+    ## ENSG00000133048                      8.974690
+    ## ENSG00000141469                      8.619703
+
+``` r
+# We will select the first 3 genes (the most significant genes 
+# linked with aging) to build 3 additional data matrix using
+# each of these genes as the centroid:
+zscore.targets <- as.list(rownames(training.data))[1:3]
+
+# Print the 3 first genes
+zscore.targets
+```
+
+    ## [[1]]
+    ## [1] "ENSG00000137198"
     ## 
-
-We will try to predict petal length from the other parameters.
-
-``` r
-# We load the DNN algorithm:
-source("./deepNN_algorithmRegressionV3.3.r")
-
-# We will pick 110 samples for the training set and the remaining 40 for the test set.
-training.MX <- sample(1:nrow(iris),size = 110)
-test.MX <- setdiff(1:150,training.MX)
-
-training.MX <- iris[training.MX,]
-training.MX$Species <- as.numeric(training.MX$Species)
-training.MX <- t(training.MX)
-
-test.MX <- iris[test.MX,]
-test.MX$Species <- as.numeric(test.MX$Species)
-test.MX <- t(test.MX)
-head(training.MX[,1:5])
-```
-
-    ##              137  49  85 140  90
-    ## Sepal.Length 6.3 5.3 5.4 6.9 5.5
-    ## Sepal.Width  3.4 3.7 3.0 3.1 2.5
-    ## Petal.Length 5.6 1.5 4.5 5.4 4.0
-    ## Petal.Width  2.4 0.2 1.5 2.1 1.3
-    ## Species      3.0 1.0 2.0 3.0 2.0
+    ## [[2]]
+    ## [1] "ENSG00000096060"
+    ## 
+    ## [[3]]
+    ## [1] "ENSG00000157617"
 
 Here we can find an except for the training dataset, *notice* that *response variables* correspond to **rows**, meanwhile *samples* correspond to **columns** .
 
@@ -64,48 +78,58 @@ Training the regression model
 First, we proceed to create the deep neural network model:
 
 ``` r
-dnn.model <- deepNeuralNetwork.build(x=c(1,2,4,5),y=3, outputNeurons = 1,
-                                 HidenLayerNeurons = c(30,10,3),traindata=data,
-                                 random.seed = 1, drawDNN = 0)
+model <- deepNeuralNetwork.build(
+            x=1:(nrow(training.data)-1),
+            y=nrow(training.data),
+            outputNeurons = 1,
+            HidenLayerNeurons = c(20,20,20,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10),
+            traindata=training.data,
+            drawDNN = 0,
+            standarization = zscore.targets)
 ```
 
-**x** will specify the index positions of our explanatory variables on the matrix *data*
+**x** will specify the index positions of our explanatory variables on the matrix *training.data* **y** will specify the index positions of our observed variable on the matrix *training.data*, here it will correspond with the age.
 
-**HidenLayerNeurons** will specify the number of neurons that each layer will have. The number of neurons on the very first layer will be the number of variables that we will use to create the regression model.
+**HidenLayerNeurons** will specify the number of neurons that each layer will have. The number of neurons on the very first layer will be the number of variables that we will use to create the regression model (deepNeuralNetwork.build calculate this automatically based on the x parameter).
 
-**deepNeuralNetwork.build** will create an object of class *DeepNNModel* that will store all the information about the dnn model:
-
-`dnn.model@dnn.structure` returns the number of neurons in each layer
-
-    ## 4 30 10  3  3  3  1
-
-``` r
-class(dnn.model)
-```
-
-    ## "DeepNNModel"
+**deepNeuralNetwork.build** will create an object of class *DeepNNModel* that will store all the information about the dnn model.
 
 And now we train the deep neural network using the following code:
 
 ``` r
 # 3. train model
-dnn.model.trained <- deepNeuralNetwork.training(x=c(1,2,4,5),y=3, model = dnn.model, #ddn.model.in.use, 
-                                              traindata=training.MX, testdata=test.MX, 
-                                              iterations  = 15000, lr = 0.001, 
-                                              reg = 0.001, display=500,maxError = 0.1)
+timeNN <- system.time(
+  model.trained <- deepNeuralNetwork.training(
+                        x=1:(nrow(training.data)-1),
+                        y=nrow(training.data),
+                        model = model, #ddn.model.in.use,
+                        traindata=training.data,
+                        testdata=test.data,
+                        iterations  = 1000,
+                        lr = 0.001,
+                        reg = 0.001,
+                        display=1000,
+                        maxError = 0.1,
+                        standarization = zscore.targets))
 ```
 
 Testing the results
 -------------------
 
-Once we have the model, we will make use of **deepNeuralNetwork.predict** function to predict a feature based on the trained regression model:
+Once we have the model, we will make use of **deepNeuralNetwork.predict** function to predict a variable based on the trained regression model:
 
 ``` r
-petal.length.prediction <- deepNeuralNetwork.predict(model.trained = dnn.model.trained@bestDnn,
-                                                     data = test.MX[-3,])
-source("linearPlot.r")
-mplot_lineal(tag = test.MX[3,],score = petal.length.prediction,title = "Petal length prediction using DNN regression",
-             x.lim = c(1,7),y.lim = c(1,7),x.lab="petal length (observed)",y.lab = "petal length (predicted)")
+age.prediction <- deepNeuralNetwork.predict(model.trained = model.trained,
+                                            data = test.data[-nrow(test.data),],
+                                            standarization = zscore.targets)
+
+
+mplot_lineal(observed = test.data[nrow(test.data),],
+             predicted = age.prediction,
+             title = "Biological age prediction using DNN regression from human brain data",
+             x.lim = c(1,7),
+             y.lim = c(1,7),
+             x.lab="chronological age (observed)",y.lab = "predicted bio-age (predicted)")
 ```
 
 ![](README_files/figure-markdown_github/unnamed-chunk-5-1.png)

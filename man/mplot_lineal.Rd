@@ -4,16 +4,16 @@
 \alias{mplot_lineal}
 \title{Linear Regression Results Plot}
 \usage{
-mplot_lineal(tag, score, title = "Regression Model Results",
+mplot_lineal(observed, predicted, title = "Regression Model Results",
   subtitle = NA, model_name = NA, save = FALSE, subdir = NA,
   deviation = FALSE, transparent = FALSE, x.lim = c(0, 100),
   y.lim = c(0, 100), x.lab = "Observed values (Y)",
   y.lab = "Predicted values (Y')", file_name = "viz_lineal.png")
 }
 \arguments{
-\item{tag}{Vector. Real known label}
+\item{observed}{Vector. Observed values: real data values label.}
 
-\item{score}{Vector. Predicted value or model's result}
+\item{predicted}{Vector. Predicted value or model's result.}
 
 \item{title}{Character. Title to be shown in the plot.}
 

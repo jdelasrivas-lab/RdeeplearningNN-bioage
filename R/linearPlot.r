@@ -5,8 +5,8 @@
 #'
 #' @import ggplot2
 #' @import scales
-#' @param tag Vector. Real known label
-#' @param score Vector. Predicted value or model's result
+#' @param observed Vector. Observed values: real data values label.
+#' @param predicted Vector. Predicted value or model's result.
 #' @param title Character. Title to be shown in the plot.
 #' @param subtitle Character. Subtitle to be shown in the plot.
 #' @param model_name Character. Model's name
@@ -20,8 +20,8 @@
 #' @param y.lab Character. The label to be printed on the Y axis plot.
 #' @param file_name Character. File name as you wish to save the plot
 #' @export
-mplot_lineal <- function(tag,
-                         score,
+mplot_lineal <- function(observed,
+                         predicted,
                          title = "Regression Model Results",
                          subtitle = NA,
                          model_name = NA,
@@ -37,8 +37,8 @@ mplot_lineal <- function(tag,
 
   require(ggplot2)
   require(scales)
-  max.val <- max(c(c(tag),c(score)))
-  min.val <- min(c(c(tag),c(score)))
+  max.val <- max(c(c(observed),c(predicted)))
+  min.val <- min(c(c(observed),c(predicted)))
   x.lim <- c(min.val,max.val)
   y.lim <- c(min.val,max.val)
   dist2d <- function(a, b = c(0, 0), c = c(1, 1)) {
@@ -47,35 +47,35 @@ mplot_lineal <- function(tag,
     m <- cbind(v1, v2)
     d <- abs(det(m)) / sqrt(sum(v1 * v1))
   }
-  rmse <- function(tag, score){
-    error <- tag - score
+  rmse <- function(observed, predicted){
+    error <- observed - predicted
     sqrt(mean(error^2))
   }
-  mae <- function(tag, score){
-    error <- tag - score
+  mae <- function(observed, predicted){
+    error <- observed - predicted
     mean(abs(error))
   }
-  if (length(tag) != length(score)) {
-    message("The tag and score vectors should be the same length.")
-    stop(message(paste("Currently, tag has",length(tag),"rows and score has",length(score))))
+  if (length(observed) != length(predicted)) {
+    message("The observed and predicted vectors should be the same length.")
+    stop(message(paste("Currently, observed has",length(observed),"rows and predicted has",length(predicted))))
   }
 
-  results <- data.frame(tag = tag, score = score, dist = 0)
+  results <- data.frame(observed = observed, predicted = predicted, dist = 0)
   for (i in 1:nrow(results)) {
-    results$dist[i] <- abs(results$tag[i] - results$score[i])
+    results$dist[i] <- abs(results$observed[i] - results$predicted[i])
   }
 
-  fit <- lm(score ~ tag)
+  fit <- lm(predicted ~ observed)
   anova(fit)
   coefficients(fit)
   if(nrow(summary(fit)$coef) == 1){pval <- NA}else if(is.na(summary(fit)$coef[2,4])){pval <- NA}else{ pval <- signif(summary(fit)$coef[2,4],3)}
   labels <- paste(
     paste("R² (adj.) = ", signif(summary(fit)$adj.r.squared, 4)),
     paste("p.value =", pval),
-    paste("RMSE =", signif(rmse(results$tag, results$score), 4)),
+    paste("RMSE =", signif(rmse(results$observed, results$predicted), 4)),
     sep="\n")
 
-  p <- ggplot(results, aes(x = tag, y = score)) +
+  p <- ggplot(results, aes(x = observed, y = predicted)) +
     geom_point() +
     geom_smooth(method = "lm", se = FALSE) +
     theme_minimal() + coord_equal(ratio = 1,xlim = x.lim,ylim = y.lim) +

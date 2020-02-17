@@ -14,30 +14,26 @@ Implementation of _Deep Neural Networks_ in R programing language.
 
 Regression algorithm for Omic data prediction in brain transcriptomics (although as a regression model, it can be applied to **any** problem with a dependent continuous variable).
 
-We will use *_iris_* dataset as a tiny example of a *_regression_* model using *deep neural networks*:
+We will use *_a set of transcriptomic data from human brain samples_* included on the package as an example of a *_regression_* model using *deep neural networks* to predict the biological age:
 
 ```{r }
-library(datasets)
-data(iris)
-summary(iris)
+# We load the Deep Neural Network package:
+library(DeepNeuralNetworks4R)
+
 ```
-We will try to predict petal length from the other parameters.
+
+We will try to predict the age of the individuals based on the gene expression of 1078 genes selected because of its implications on brain aging on cortex region (Oscar González-Velasco, et al., BBA - Gene Regulatory Mechanisms, https://doi.org/10.1016/j.bbagrm.2020.194491).
+
 ```{r }
-# We load the DNN algorithm:
-source("./deepNN_algorithmRegressionV3.3.r")
+# We inspectionate the data included within the package:
+training.data[1:5,1:5]
 
-# We will pick 110 samples for the training set and the remaining 40 for the test set.
-training.MX <- sample(1:nrow(iris),size = 110)
-test.MX <- setdiff(1:150,training.MX)
+# We will select the first 3 genes (the most significant genes linked with aging) to build 3 additional
+# data matrix using each of these genes as the centroid:
+zscore.targets <- as.list(rownames(training.data))[1:3]
 
-training.MX <- iris[training.MX,]
-training.MX$Species <- as.numeric(training.MX$Species)
-training.MX <- t(training.MX)
-
-test.MX <- iris[test.MX,]
-test.MX$Species <- as.numeric(test.MX$Species)
-test.MX <- t(test.MX)
-head(training.MX[,1:5])
+# Print the 3 first genes
+zscore.targets
 ```
 Here we can find an except for the training dataset, *notice* that *response variables* correspond to *_rows_*, meanwhile *samples* correspond to *_columns_* .
 
@@ -46,14 +42,20 @@ Here we can find an except for the training dataset, *notice* that *response var
 First, we proceed to create the deep neural network model:
 
 ```{r, message = FALSE}
-dnn.model <- deepNeuralNetwork.build(x=c(1,2,4,5),y=3, outputNeurons = 1,
-                                 HidenLayerNeurons = c(30,10,3),traindata=data,
-                                 random.seed = 1, drawDNN = 0)
+model <- deepNeuralNetwork.build(
+            x=1:(nrow(training.data)-1),
+            y=nrow(training.data),
+            outputNeurons = 1,
+            HidenLayerNeurons = c(20,20,20,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10),
+            traindata=training.data,
+            drawDNN = 0,
+            standarization = zscore.targets)
 ```
 
-*_x_* will specify the indice positions of our explanatory variables on the matrix _data_
+*_x_* will specify the index positions of our explanatory variables on the matrix _training.data_
+*_y_* will specify the index positions of our observed variable on the matrix _training.data_, here it will correspond with the age.
 
-*_HidenLayerNeurons_* will specify the number of neurons that each layer will have. The number of neurons on the very first layer will be the number of variables that we will use to create the regression model.
+*_HidenLayerNeurons_* will specify the number of neurons that each layer will have. The number of neurons on the very first layer will be the number of variables that we will use to create the regression model (deepNeuralNetwork.build calculate this automatically based on the x parameter).
 
 *_deepNeuralNetwork.build_* will create an object of class _DeepNNModel_ that will store all the information about the dnn model.
 
@@ -61,22 +63,40 @@ And now we train the deep neural network using the following code:
 
 ```{r, message=FALSE}
 # 3. train model
-dnn.model.trained <- deepNeuralNetwork.training(x=c(1,2,4,5),y=3, model = dnn.model, #ddn.model.in.use, 
-                                              traindata=training.MX, testdata=test.MX, 
-                                              iterations  = 15000, lr = 0.001, 
-                                              reg = 0.001, display=500,maxError = 0.1)
+timeNN <- system.time(
+  model.trained <- deepNeuralNetwork.training(
+                        x=1:(nrow(training.data)-1),
+                        y=nrow(training.data),
+                        model = model, #ddn.model.in.use,
+                        traindata=training.data,
+                        testdata=test.data,
+                        iterations  = 1000,
+                        lr = 0.001,
+                        reg = 0.001,
+                        display=1000,
+                        maxError = 0.1,
+                        standarization = zscore.targets))
+
 ```
 
 ## Testing the results
 
-Once we have the model, we will make use of *_deepNeuralNetwork.predict_* function to predict a feature based on the trained regression model:
+Once we have the model, we will make use of *_deepNeuralNetwork.predict_* function to predict a variable based on the trained regression model:
 
 ```{r message = FALSE,fig.dim = c(10, 10)}
-petal.length.prediction <- deepNeuralNetwork.predict(model.trained = dnn.model.trained@bestDnn,
-                                                     data = test.MX[-3,])
-source("linearPlot.r")
-mplot_lineal(tag = test.MX[3,],score = petal.length.prediction,title = "Petal length prediction using DNN regression",
-             x.lim = c(1,7),y.lim = c(1,7),x.lab="petal length (observed)",y.lab = "petal length (predicted)")
+
+age.prediction <- deepNeuralNetwork.predict(model.trained = model.trained,
+                                            data = test.data[-nrow(test.data),],
+                                            standarization = zscore.targets)
+
+
+mplot_lineal(observed = test.data[nrow(test.data),],
+             predicted = age.prediction,
+             title = "Biological age prediction using DNN regression from human brain data",
+             x.lim = c(1,7),
+             y.lim = c(1,7),
+             x.lab="chronological age (observed)",y.lab = "predicted bio-age (predicted)")
+
 ```
 
 ## Using GPU for large datasets

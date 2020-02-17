@@ -234,10 +234,10 @@ deepNeuralNetwork.training <- function(x,y, model = NULL,
       subtitle <- "Regresion Model parcial prediction."
       if(savePlotIteration){
         # Should the plot image for each epoque-iteration be saved? TRUE -> png image with the iteration number as name
-        print(mplot_lineal(tag = Y,score = y_DNNoutput,title = title,subtitle = subtitle,save = T,file_name = paste("regression.model.iteration.",as.character(i),".png",sep = ""),subdir = "/home/oscar/Escritorio/DeepNeuralNetworks4R/images/"))
+        print(mplot_lineal(observed = Y,predicted = y_DNNoutput,title = title,subtitle = subtitle,save = T,file_name = paste("regression.model.iteration.",as.character(i),".png",sep = ""),subdir = "/home/oscar/Escritorio/DeepNeuralNetworks4R/images/"))
       }
       else{
-        print(mplot_lineal(tag = Y,score = y_DNNoutput,title = title,subtitle = subtitle))
+        print(mplot_lineal(observed = Y,predicted = y_DNNoutput,title = title,subtitle = subtitle))
       }
     }else{
       cat("\r","Iteration Number:",i," Actual Loss:", loss)
