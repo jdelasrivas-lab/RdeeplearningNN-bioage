@@ -84,7 +84,7 @@ model <- deepNeuralNetwork.build(
             outputNeurons = 1,
             HidenLayerNeurons = c(20,20,20,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10),
             traindata=training.data,
-            drawDNN = 0,
+            drawDNN = FALSE,
             standarization = zscore.targets)
 ```
 
